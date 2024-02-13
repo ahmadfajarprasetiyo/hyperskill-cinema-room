@@ -116,6 +116,18 @@ files:
           jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED'
       }
     learner_created: false
-feedback_link: https://hyperskill.org/projects/189/stages/945/implement#comment
-status: Unchecked
+  - name: src/cinema/SeatController.java
+    visible: true
+    learner_created: true
+  - name: src/cinema/SeatCinema.java
+    visible: true
+    learner_created: true
+  - name: src/cinema/Seat.java
+    visible: true
+    learner_created: true
+feedback_link: https://hyperskill.org/learn/step/13375#comment
+status: Solved
+feedback:
+  message: Congratulations!
+  time: "Tue, 13 Feb 2024 04:50:06 UTC"
 record: -1
