@@ -230,6 +230,90 @@ files:
           };
       }
     learner_created: false
+  - name: src/cinema/Seat.java
+    visible: true
+    text: |
+      package cinema;
+      
+      public class Seat {
+          private int row;
+          private int column;
+      
+          Seat(int row, int column) {
+              this.row = row;
+              this.column = column;
+          }
+      
+          public int getRow() {
+              return row;
+          }
+      
+          public int getColumn() {
+              return column;
+          }
+      }
+    learner_created: true
+  - name: src/cinema/SeatController.java
+    visible: true
+    text: |
+      package cinema;
+      
+      import org.springframework.web.bind.annotation.*;
+      
+      @RestController
+      public class SeatController {
+      
+          @GetMapping("/seats")
+          public SeatCinema getSeat() {
+              return new SeatCinema(9,9);
+          }
+      }
+    learner_created: true
+  - name: src/cinema/SeatCinema.java
+    visible: true
+    text: |
+      package cinema;
+      
+      import java.util.ArrayList;
+      import java.util.List;
+      
+      public class SeatCinema {
+          private int rows;
+          private int columns;
+      
+          private List<Seat> seats;
+      
+          SeatCinema(int rows, int columns) {
+              this.rows = rows;
+              this.columns = columns;
+              this.seats = new ArrayList<>();
+      
+              for (int i = 1; i <= this.rows; i++) {
+                  for (int j = 1; j <= this.columns; j++) {
+                      this.seats.add(new Seat(i, j));
+                  }
+              }
+          }
+      
+          public int getColumns() {
+              return columns;
+          }
+      
+          public int getRows() {
+              return rows;
+          }
+      
+          public List<Seat> getSeats() {
+              return seats;
+          }
+      }
+    learner_created: true
+  - name: src/cinema/SeatPurchaseError.java
+    visible: true
+    learner_created: true
 feedback_link: https://hyperskill.org/learn/step/13376#comment
-status: Unchecked
+status: Solved
+feedback:
+  message: Congratulations!
+  time: "Tue, 13 Feb 2024 08:05:15 UTC"
 record: -1
