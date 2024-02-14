@@ -1,11 +1,11 @@
 package cinema;
 
-public class SeatPurchaseError {
-    final private String error;
-    SeatPurchaseError(String error) {
+public class ErrorResponse {
+    private final String error;
+
+    ErrorResponse(String error) {
         this.error = error;
     }
-
     public String getError() {
         return error;
     }

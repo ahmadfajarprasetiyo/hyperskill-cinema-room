@@ -444,6 +444,178 @@ files:
           };
       }
     learner_created: false
+  - name: src/cinema/Seat.java
+    visible: true
+    text: |
+      package cinema;
+      
+      import com.fasterxml.jackson.annotation.*;
+      
+      public class Seat {
+          int row;
+          int column;
+          int price;
+          boolean purchased;
+      
+          Seat(int row, int column, int price) {
+              this.row = row;
+              this.column = column;
+              this.price = price;
+              this.purchased = false;
+          }
+      
+          Seat() {}
+      
+          public int getRow() {
+              return row;
+          }
+      
+          public int getColumn() {
+              return column;
+          }
+      
+          public int getPrice() {
+              return price;
+          }
+          @JsonIgnore
+          public boolean isPurchased() {
+              return purchased;
+          }
+      
+          public void setColumn(int column) {
+              this.column = column;
+          }
+      
+          public void setRow(int row) {
+              this.row = row;
+          }
+      
+          public void purchased() {
+              this.purchased = true;
+          }
+      }
+    learner_created: true
+  - name: src/cinema/SeatPurchaseException.java
+    visible: true
+    text: |
+      package cinema;
+      
+      public class SeatPurchaseError {
+          final private String error;
+          SeatPurchaseError(String error) {
+              this.error = error;
+          }
+      
+          public String getError() {
+              return error;
+          }
+      }
+    learner_created: true
+  - name: src/cinema/SeatController.java
+    visible: true
+    text: |
+      package cinema;
+      
+      import org.springframework.http.HttpStatus;
+      import org.springframework.http.ResponseEntity;
+      import org.springframework.web.bind.annotation.*;
+      
+      @RestController
+      public class SeatController {
+          final int sizeSeat = 9;
+          SeatCinema seatCinema = new SeatCinema(sizeSeat, sizeSeat);
+      
+          @GetMapping("/seats")
+          public SeatCinema getSeat() {
+              return this.seatCinema;
+          }
+      
+          @PostMapping("/purchase")
+          public ResponseEntity<Object> purchaseSeat(@RequestBody Seat seatRequest) {
+              Seat seat = this.seatCinema.getSeat(String.format("%d-%d", seatRequest.getRow(), seatRequest.getColumn()));
+      
+              if (seat == null) {
+                  return new ResponseEntity<>(new SeatPurchaseError("The number of a row or a column is out of bounds!"), HttpStatus.BAD_REQUEST);
+              } else if (seat.isPurchased()) {
+                  return new ResponseEntity<>(new SeatPurchaseError("The ticket has been already purchased!"), HttpStatus.BAD_REQUEST);
+              }
+      
+      
+              seat.purchased();
+              return new ResponseEntity<>(seat, HttpStatus.OK);
+          }
+      }
+    learner_created: true
+  - name: src/cinema/SeatCinema.java
+    visible: true
+    text: |
+      package cinema;
+      
+      import java.util.ArrayList;
+      import java.util.List;
+      import java.util.Map;
+      import java.util.concurrent.ConcurrentHashMap;
+      
+      public class SeatCinema {
+          final private int rows;
+          final private int columns;
+          final private List<Seat> seats;
+          final private Map<String, Seat> mapSeats;
+      
+          SeatCinema(int rows, int columns) {
+              this.rows = rows;
+              this.columns = columns;
+              this.mapSeats = new ConcurrentHashMap<>();
+              this.seats = new ArrayList<>();
+      
+              for (int i = 1; i <= this.rows; i++) {
+                  for (int j = 1; j <= this.columns; j++) {
+                      int price = 8;
+                      if (i <= 4) {
+                          price = 10;
+                      }
+                      Seat seat = new Seat(i, j, price);
+                      this.seats.add(seat);
+                      this.mapSeats.put(String.format("%d-%d", i, j), seat);
+                  }
+              }
+          }
+      
+          public int getColumns() {
+              return columns;
+          }
+      
+          public int getRows() {
+              return rows;
+          }
+      
+          public List<Seat> getSeats() {
+              return seats;
+          }
+      
+          public Seat getSeat(String key) {
+              return this.mapSeats.get(key);
+          }
+      }
+    learner_created: true
+  - name: src/cinema/Token.java
+    visible: true
+    learner_created: true
+  - name: src/cinema/ReturnResponse.java
+    visible: true
+    learner_created: true
+  - name: src/cinema/PurchaseResponse.java
+    visible: true
+    learner_created: true
+  - name: src/cinema/ErrorResponse.java
+    visible: true
+    learner_created: true
+  - name: src/cinema/ControllerExceptionHandler.java
+    visible: true
+    learner_created: true
 feedback_link: https://hyperskill.org/learn/step/13377#comment
-status: Unchecked
+status: Solved
+feedback:
+  message: Congratulations!
+  time: "Wed, 14 Feb 2024 02:17:07 UTC"
 record: -1

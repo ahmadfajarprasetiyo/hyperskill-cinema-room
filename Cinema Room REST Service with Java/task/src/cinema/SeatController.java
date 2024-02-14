@@ -15,17 +15,27 @@ public class SeatController {
     }
 
     @PostMapping("/purchase")
-    public ResponseEntity<Object> purchaseSeat(@RequestBody Seat seatRequest) {
+    public PurchaseResponse purchaseSeat(@RequestBody Seat seatRequest) {
         Seat seat = this.seatCinema.getSeat(String.format("%d-%d", seatRequest.getRow(), seatRequest.getColumn()));
 
         if (seat == null) {
-            return new ResponseEntity<>(new SeatPurchaseError("The number of a row or a column is out of bounds!"), HttpStatus.BAD_REQUEST);
+            throw new SeatPurchaseException("The number of a row or a column is out of bounds!");
         } else if (seat.isPurchased()) {
-            return new ResponseEntity<>(new SeatPurchaseError("The ticket has been already purchased!"), HttpStatus.BAD_REQUEST);
+            throw new SeatPurchaseException("The ticket has been already purchased!");
         }
 
+        String uuid = this.seatCinema.purchaseSeat(seat);
+        return new PurchaseResponse(uuid, seat);
+    }
 
-        seat.purchased();
-        return new ResponseEntity<>(seat, HttpStatus.OK);
+    @PostMapping("/return")
+    public ReturnResponse returnSeat(@RequestBody Token tokenRequest) {
+        Seat seat = this.seatCinema.returnSeat(tokenRequest.getToken());
+
+        if (seat == null) {
+            throw new SeatPurchaseException("Wrong token!");
+        }
+
+        return new ReturnResponse(seat);
     }
 }

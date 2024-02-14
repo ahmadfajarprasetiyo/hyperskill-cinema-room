@@ -44,4 +44,8 @@ public class Seat {
     public void purchased() {
         this.purchased = true;
     }
+
+    public void returnPurchased() {
+        this.purchased = false;
+    }
 }
