@@ -538,6 +538,305 @@ files:
           };
       }
     learner_created: false
+  - name: src/cinema/Seat.java
+    visible: true
+    text: |
+      package cinema;
+      
+      import com.fasterxml.jackson.annotation.*;
+      
+      public class Seat {
+          int row;
+          int column;
+          int price;
+          boolean purchased;
+      
+          Seat(int row, int column, int price) {
+              this.row = row;
+              this.column = column;
+              this.price = price;
+              this.purchased = false;
+          }
+      
+          Seat() {}
+      
+          public int getRow() {
+              return row;
+          }
+      
+          public int getColumn() {
+              return column;
+          }
+      
+          public int getPrice() {
+              return price;
+          }
+          @JsonIgnore
+          public boolean isPurchased() {
+              return purchased;
+          }
+      
+          public void setColumn(int column) {
+              this.column = column;
+          }
+      
+          public void setRow(int row) {
+              this.row = row;
+          }
+      
+          public void purchased() {
+              this.purchased = true;
+          }
+      
+          public void returnPurchased() {
+              this.purchased = false;
+          }
+      }
+    learner_created: true
+  - name: src/cinema/Token.java
+    visible: true
+    text: |
+      package cinema;
+      
+      public class Token {
+          private String token;
+      
+          Token() {}
+      
+          Token(String token) {
+              this.token = token;
+          }
+      
+          public void setToken(String token) {
+              this.token = token;
+          }
+      
+          public String getToken() {
+              return token;
+          }
+      }
+    learner_created: true
+  - name: src/cinema/SeatController.java
+    visible: true
+    text: |
+      package cinema;
+      
+      import org.springframework.http.HttpStatus;
+      import org.springframework.http.ResponseEntity;
+      import org.springframework.web.bind.annotation.*;
+      
+      @RestController
+      public class SeatController {
+          final int sizeSeat = 9;
+          SeatCinema seatCinema = new SeatCinema(sizeSeat, sizeSeat);
+      
+          @GetMapping("/seats")
+          public SeatCinema getSeat() {
+              return this.seatCinema;
+          }
+      
+          @PostMapping("/purchase")
+          public PurchaseResponse purchaseSeat(@RequestBody Seat seatRequest) {
+              Seat seat = this.seatCinema.getSeat(String.format("%d-%d", seatRequest.getRow(), seatRequest.getColumn()));
+      
+              if (seat == null) {
+                  throw new SeatPurchaseException("The number of a row or a column is out of bounds!");
+              } else if (seat.isPurchased()) {
+                  throw new SeatPurchaseException("The ticket has been already purchased!");
+              }
+      
+              String uuid = this.seatCinema.purchaseSeat(seat);
+              return new PurchaseResponse(uuid, seat);
+          }
+      
+          @PostMapping("/return")
+          public ReturnResponse returnSeat(@RequestBody Token tokenRequest) {
+              Seat seat = this.seatCinema.returnSeat(tokenRequest.getToken());
+      
+              if (seat == null) {
+                  throw new SeatPurchaseException("Wrong token!");
+              }
+      
+              return new ReturnResponse(seat);
+          }
+      }
+    learner_created: true
+  - name: src/cinema/PurchaseResponse.java
+    visible: true
+    text: |
+      package cinema;
+      
+      public class PurchaseResponse {
+      
+          private final String token;
+          private final Seat ticket;
+      
+          PurchaseResponse(String token, Seat ticket) {
+              this.token = token;
+              this.ticket = ticket;
+          }
+      
+          public Seat getTicket() {
+              return ticket;
+          }
+      
+          public String getToken() {
+              return token;
+          }
+      }
+    learner_created: true
+  - name: src/cinema/ErrorResponse.java
+    visible: true
+    text: |
+      package cinema;
+      
+      public class ErrorResponse {
+          private final String error;
+      
+          ErrorResponse(String error) {
+              this.error = error;
+          }
+          public String getError() {
+              return error;
+          }
+      }
+    learner_created: true
+  - name: src/cinema/SeatPurchaseException.java
+    visible: true
+    text: |
+      package cinema;
+      
+      public class SeatPurchaseException extends RuntimeException {
+          SeatPurchaseException(String message) {
+              super(message);
+          }
+      }
+    learner_created: true
+  - name: src/cinema/ReturnResponse.java
+    visible: true
+    text: |
+      package cinema;
+      
+      public class ReturnResponse {
+          private final Seat ticket;
+      
+          ReturnResponse(Seat ticket) {
+              this.ticket = ticket;
+          }
+      
+          public Seat getTicket() {
+              return ticket;
+          }
+      }
+    learner_created: true
+  - name: src/cinema/ControllerExceptionHandler.java
+    visible: true
+    text: |
+      package cinema;
+      
+      
+      import org.springframework.http.HttpStatus;
+      import org.springframework.http.ResponseEntity;
+      import org.springframework.web.bind.annotation.*;
+      
+      @ControllerAdvice
+      public class ControllerExceptionHandler {
+      
+          @ExceptionHandler(SeatPurchaseException.class)
+          public ResponseEntity<ErrorResponse> handleSeatPurchaseException(SeatPurchaseException e) {
+      
+              ErrorResponse body = new ErrorResponse(e.getMessage());
+      
+              return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+          }
+      }
+    learner_created: true
+  - name: src/cinema/SeatCinema.java
+    visible: true
+    text: |
+      package cinema;
+      
+      import com.fasterxml.jackson.annotation.JsonIgnore;
+      
+      import java.util.ArrayList;
+      import java.util.List;
+      import java.util.Map;
+      import java.util.UUID;
+      import java.util.concurrent.ConcurrentHashMap;
+      
+      public class SeatCinema {
+          final private int rows;
+          final private int columns;
+          final private List<Seat> seats;
+          final private Map<String, Seat> mapSeats;
+          final private Map<String, Seat> purchasedSeats;
+      
+          SeatCinema(int rows, int columns) {
+              this.rows = rows;
+              this.columns = columns;
+              this.mapSeats = new ConcurrentHashMap<>();
+              this.purchasedSeats = new ConcurrentHashMap<>();
+              this.seats = new ArrayList<>();
+      
+              for (int i = 1; i <= this.rows; i++) {
+                  for (int j = 1; j <= this.columns; j++) {
+                      int price = 8;
+                      if (i <= 4) {
+                          price = 10;
+                      }
+                      Seat seat = new Seat(i, j, price);
+                      this.seats.add(seat);
+                      this.mapSeats.put(String.format("%d-%d", i, j), seat);
+                  }
+              }
+          }
+      
+          public int getColumns() {
+              return columns;
+          }
+      
+          public int getRows() {
+              return rows;
+          }
+      
+          public List<Seat> getSeats() {
+              return seats;
+          }
+      
+          public Seat getSeat(String key) {
+              return this.mapSeats.get(key);
+          }
+      
+          @JsonIgnore
+          public String purchaseSeat(Seat seat) {
+              String uuid = UUID.randomUUID().toString();
+              seat.purchased();
+              this.purchasedSeats.put(uuid, seat);
+      
+              return uuid;
+          }
+      
+          @JsonIgnore
+          public Seat returnSeat(String uuid) {
+              Seat seat = this.purchasedSeats.get(uuid);
+      
+              if (seat != null) {
+                  seat.returnPurchased();
+                  this.purchasedSeats.remove(uuid);
+              }
+      
+              return seat;
+          }
+      
+      }
+    learner_created: true
+  - name: src/cinema/StatsResponse.java
+    visible: true
+    learner_created: true
 feedback_link: https://hyperskill.org/learn/step/13378#comment
-status: Unchecked
+status: Solved
+feedback:
+  message: Well done! You've finished the project. Select a new project on <a href="https://hyperskill.org/projects">Hyperskill</a>
+    to continue learning.
+  time: "Wed, 14 Feb 2024 04:14:29 UTC"
 record: -1

@@ -14,6 +14,17 @@ public class SeatController {
         return this.seatCinema;
     }
 
+    @GetMapping("/stats")
+    public StatsResponse getStats(@RequestParam(required = false, name = "password") String password) {
+
+        if (password == null || !password.equals("super_secret")) {
+            throw new SeatPurchaseException("The password is wrong!");
+        }
+
+        return this.seatCinema.getStat();
+
+    }
+
     @PostMapping("/purchase")
     public PurchaseResponse purchaseSeat(@RequestBody Seat seatRequest) {
         Seat seat = this.seatCinema.getSeat(String.format("%d-%d", seatRequest.getRow(), seatRequest.getColumn()));

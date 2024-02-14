@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SeatCinema {
     final private int rows;
     final private int columns;
+    private int income;
     final private List<Seat> seats;
     final private Map<String, Seat> mapSeats;
     final private Map<String, Seat> purchasedSeats;
@@ -21,6 +22,7 @@ public class SeatCinema {
         this.mapSeats = new ConcurrentHashMap<>();
         this.purchasedSeats = new ConcurrentHashMap<>();
         this.seats = new ArrayList<>();
+        this.income = 0;
 
         for (int i = 1; i <= this.rows; i++) {
             for (int j = 1; j <= this.columns; j++) {
@@ -56,6 +58,7 @@ public class SeatCinema {
         String uuid = UUID.randomUUID().toString();
         seat.purchased();
         this.purchasedSeats.put(uuid, seat);
+        this.income = this.income + seat.getPrice();
 
         return uuid;
     }
@@ -67,9 +70,16 @@ public class SeatCinema {
         if (seat != null) {
             seat.returnPurchased();
             this.purchasedSeats.remove(uuid);
+            this.income = this.income - seat.getPrice();
         }
 
+
         return seat;
+    }
+
+    @JsonIgnore
+    public StatsResponse getStat() {
+        return new StatsResponse(this.income, this.seats.size()-this.purchasedSeats.size(), this.purchasedSeats.size());
     }
 
 }
